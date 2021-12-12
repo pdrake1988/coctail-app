@@ -1,88 +1,65 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './App.css';
-import {FormControl, InputGroup, SplitButton} from "react-bootstrap";
-import DropdownItem from "react-bootstrap/DropdownItem";
+import {Header} from "./components/Header";
+import Drinks from "./components/Drinks";
+import Cocktail from './components/Cocktail';
 
 function App() {
-    const [urlParams, setUrlParams] = useState("popular.php");
-    const [param, setParam] = useState("");
+    document.body.classList.add('bg-primary');
+    const [urlParam, setUrlParam] = useState("");
+    const [paramType, setParamType] = useState("Popular")
     const [char, setChar] = useState("");
     const [cocktails, setCocktails] = useState([]);
-    const [title, setTitle] = useState("Popular");
-    function setParams(param: string, paramType: string, letter?: string) {
-        if(paramType === "search") {
-            fetch(`\`https://www.themealdb.com/api/json/v2/9973533/search.php?${letter}=${param}`)
+    function setParams(param: string, paramType: string, char: string) {
+        if(paramType === "Search") {
+            fetch(`https://www.thecocktaildb.com/api/json/v2/9973533/search.php?${char}=${param}`)
                 .then(data => data.json()).then(results => {
-                console.log(results);
-                setCocktails(results);
+                console.log(results.drinks);
+                setCocktails(results.drinks);
             })
-        } else if(paramType === "latest") {
-            fetch("https://www.themealdb.com/api/json/v2/9973533/latest.php")
+        } else if(paramType === "Latest") {
+            fetch("https://www.thecocktaildb.com.com/api/json/v2/9973533/latest.php")
                 .then(data => data.json()).then(results => {
-                    console.log(results);
-                    setCocktails(results);
+                    console.log(results.drinks);
+                    setCocktails(results.drinks);
             })
-        } else if(paramType === "randomselection.php") {
-            fetch("https://www.themealdb.com/api/json/v2/9973533/randomselection.php")
+        } else if(paramType === "Random") {
+            fetch("https://www.thecocktaildb.com/api/json/v2/9973533/randomselection.php")
                 .then(data => data.json()).then(results => {
-                console.log(results);
-                setCocktails(results);
+                console.log(results.drinks);
+                setCocktails(results.drinks);
             });
         } else {
-            fetch("https://www.themealdb.com/api/json/v2/9973533/popular.php")
+            fetch("https://www.thecocktaildb.com/api/json/v2/9973533/popular.php")
                 .then(data => data.json()).then(results => {
-                    console.log(results);
-                    setCocktails(results);
+                    console.log(results.drinks);
+                    setCocktails(results.drinks);
             });
         }
     }
+    useEffect(() => {
+        setParams(urlParam, paramType, char);
+    }, [urlParam, paramType, char]);
     return (
-        <header>
+        <React.Fragment>
+            <Header
+                paramType={paramType} urlParam={urlParam} char={char}
+                setUrlParam={(param: string) => setUrlParam(param)}
+                setParamType={(type: string) => setParamType(type)}
+                setChar={(char: string) => setChar(char)}/>
             <div className={'container'}>
                 <div className={'row'}>
-                    <div className={'col-4'}>
-                        <InputGroup className={'text-start'}>
-                            <SplitButton variant={'danger'} title={title}>
-                                <DropdownItem onClick={() => {
-                                    setUrlParams("popular.php");
-                                    setTitle("Popular")
-                                }}>Popular</DropdownItem>
-                                <DropdownItem onClick={() => {
-                                    setUrlParams("search.php");
-                                    setChar("s");
-                                    setTitle("Search Cocktails by Name")
-                                }}>Search Cocktails by Name</DropdownItem>
-                                <DropdownItem onChange={() => {
-                                    setUrlParams("search.php");
-                                    setChar("i");
-                                    setTitle("Search Cocktails by Ingredient")
-                                }}>Search Cocktails by Ingredient</DropdownItem>
-                                <DropdownItem onChange={() => {
-                                    setUrlParams("search.php");
-                                    setChar("f");
-                                    setTitle("Search Cocktails by First Letter")
-                                }}>Search Cocktails by First Letter</DropdownItem>
-                                <DropdownItem onClick={() => {
-                                    setUrlParams("latest.php");
-                                    setTitle("Latest");
-                                }}>Latest</DropdownItem>
-                                <DropdownItem onClick={() => {
-                                    setUrlParams("randomselection.php");
-                                    setTitle("Random Selection");
-                                }}>Random Selection</DropdownItem>
-                            </SplitButton>
-                            <FormControl onChange={(item) => setParam(item.target.value)}/>
-                        </InputGroup>
-                    </div>
-                    <div className={'col-4'}>
-                        <h1 className={'text-center'}>Cocktail App</h1>
-                    </div>
-                    <div className={'col-4'}>
-                        <a className={'btn btn-success text-end'} href={'https://pdrake.me'}>Home Page</a>
-                    </div>
+                    {cocktails.map((cocktail: Drinks, index: number) => {
+                        return(
+                            <Cocktail key={index}
+                                id={cocktail.idDrink}
+                                name={cocktail.strDrink}
+                                image={cocktail.strDrinkThumb}/>
+                        )
+                    })}
                 </div>
             </div>
-          </header>
+        </React.Fragment>
   );
 }
 
