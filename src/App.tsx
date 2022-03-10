@@ -1,61 +1,33 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useReducer, useState} from 'react';
 import './App.css';
 import {Header} from "./components/Header";
-import Drinks from "./components/Drinks";
 import Cocktail from './components/Cocktail';
+import cocktailReducer from "./components/functions/cocktailReducer";
+import axios from "axios";
+import CocktailDetails from "./components/interfaces/CocktailDetails";
+
 
 function App() {
     document.body.classList.add('bg-primary');
-    const [urlParam, setUrlParam] = useState("");
-    const [paramType, setParamType] = useState("Popular")
-    const [char, setChar] = useState("");
-    const [cocktails, setCocktails] = useState([]);
-    function setParams(param: string, paramType: string, char: string) {
-        if(paramType === "Search") {
-            fetch(`https://www.thecocktaildb.com/api/json/v2/9973533/search.php?${char}=${param}`)
-                .then(data => data.json()).then(results => {
-                console.log(results.drinks);
-                setCocktails(results.drinks);
-            })
-        } else if(paramType === "Latest") {
-            fetch("https://www.thecocktaildb.com.com/api/json/v2/9973533/latest.php")
-                .then(data => data.json()).then(results => {
-                    console.log(results.drinks);
-                    setCocktails(results.drinks);
-            })
-        } else if(paramType === "Random") {
-            fetch("https://www.thecocktaildb.com/api/json/v2/9973533/randomselection.php")
-                .then(data => data.json()).then(results => {
-                console.log(results.drinks);
-                setCocktails(results.drinks);
-            });
-        } else {
-            fetch("https://www.thecocktaildb.com/api/json/v2/9973533/popular.php")
-                .then(data => data.json()).then(results => {
-                    console.log(results.drinks);
-                    setCocktails(results.drinks);
-            });
-        }
-    }
+    const [url, setUrl] = useReducer(cocktailReducer,
+        {baseUrl: 'https://www.thecocktaildb.com/api/json/v2/9973533/popular.php', urlParam: null});
+    const [cocktails, setCocktails] = useState<CocktailDetails>();
     useEffect(() => {
-        setParams(urlParam, paramType, char);
-    }, [urlParam, paramType, char]);
+        axios.get(url.baseUrl, {params: url.urlParam}).then(res => setCocktails(res.data))
+            .catch(err => console.log(err))
+    }, [url]);
     return (
         <React.Fragment>
-            <Header
-                paramType={paramType} urlParam={urlParam} char={char}
-                setUrlParam={(param: string) => setUrlParam(param)}
-                setParamType={(type: string) => setParamType(type)}
-                setChar={(char: string) => setChar(char)}/>
+            <Header setParams={(params: string) => setUrl(params)}/>
             <div className={'container'}>
                 <div className={'row'}>
-                    {cocktails.map((cocktail: Drinks, index: number) => {
+                    {cocktails?.drinks?.map(cocktail => {
                         return(
-                            <Cocktail key={index}
-                                id={cocktail.idDrink}
-                                name={cocktail.strDrink}
-                                image={cocktail.strDrinkThumb}/>
-                        )
+                            <Cocktail key={cocktail.idDrink}
+                                      id={cocktail.idDrink}
+                                      name={cocktail.strDrink}
+                                      image={cocktail.strDrinkThumb}/>
+                        );
                     })}
                 </div>
             </div>
